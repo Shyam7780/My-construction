@@ -24,27 +24,17 @@ export default function AdminLogin() {
     setError('');
     setLoading(true);
 
-    try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        localStorage.setItem('admin_token', data.token);
-        localStorage.setItem('admin_email', data.email);
+    // API कॉल हटा दी गई है, अब सीधा ईमेल और पासवर्ड चेक होगा
+    setTimeout(() => {
+      if (email === 'shyamkumarram123453@gmail.com' && password === 'Shyam@#9798') {
+        localStorage.setItem('admin_token', 'secure_admin_token_123');
+        localStorage.setItem('admin_email', email);
         navigate('/admin/dashboard');
       } else {
-        setError(data.error || 'Invalid credentials. Please check your email and password.');
+        setError('Invalid credentials. Please check your email and password.');
       }
-    } catch (err) {
-      setError('A network error occurred. Please try again.');
-    } finally {
       setLoading(false);
-    }
+    }, 1000);
   };
 
   return (
@@ -53,6 +43,7 @@ export default function AdminLogin() {
 
       <div 
         className="flex-grow flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 bg-cover bg-center"
+        /* अगर बैकग्राउंड इमेज बदलनी हो, तो नीचे 'admin-bg.jpg' की जगह अपनी नई फोटो का नाम लिखें */
         style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.95)), url('/images/admin-bg.jpg')` }}
       >
         <div className="max-w-md w-full space-y-8 bg-zinc-950/90 border border-yellow-500/20 p-8 sm:p-10 rounded-3xl shadow-2xl backdrop-blur-md">
