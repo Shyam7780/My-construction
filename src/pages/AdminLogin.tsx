@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { ShieldAlert, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { supabase } from '../supabase'; // Supabase यहाँ इम्पोर्ट किया गया है
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -24,17 +25,27 @@ export default function AdminLogin() {
     setError('');
     setLoading(true);
 
-    // API कॉल हटा दी गई है, अब सीधा ईमेल और पासवर्ड चेक होगा
-    setTimeout(() => {
-      if (email === 'shyamkumarram123453@gmail.com' && password === 'Shyam@#9798') {
-        localStorage.setItem('admin_token', 'secure_admin_token_123');
+    try {
+      // यह कोड सीधा Supabase डेटाबेस से बात करेगा
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        // अगर पासवर्ड गलत हुआ या अकाउंट नहीं बना है तो Supabase का एरर दिखाएगा
+        setError(error.message); 
+      } else if (data.session) {
+        // लॉगिन सफल!
+        localStorage.setItem('admin_token', data.session.access_token);
         localStorage.setItem('admin_email', email);
         navigate('/admin/dashboard');
-      } else {
-        setError('Invalid credentials. Please check your email and password.');
       }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -43,7 +54,6 @@ export default function AdminLogin() {
 
       <div 
         className="flex-grow flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 bg-cover bg-center"
-        /* अगर बैकग्राउंड इमेज बदलनी हो, तो नीचे 'admin-bg.jpg' की जगह अपनी नई फोटो का नाम लिखें */
         style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.95)), url('/images/admin-bg.jpg')` }}
       >
         <div className="max-w-md w-full space-y-8 bg-zinc-950/90 border border-yellow-500/20 p-8 sm:p-10 rounded-3xl shadow-2xl backdrop-blur-md">
@@ -81,7 +91,7 @@ export default function AdminLogin() {
                   <input
                     type="email"
                     required
-                    placeholder="ramchhotan63@gmail.com"
+                    placeholder="admin@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full bg-zinc-900 border border-zinc-800 focus:border-yellow-400 rounded-xl pl-12 pr-4 py-3.5 text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-yellow-400 transition"
@@ -125,14 +135,6 @@ export default function AdminLogin() {
               )}
             </button>
           </form>
-
-          {/* Demo Credentials Helper */}
-          <div className="pt-4 border-t border-zinc-900 text-center">
-            <span className="text-zinc-500 text-xs block">Demo Credentials:</span>
-            <span className="text-yellow-400/80 text-xs font-mono block mt-1">
-              ramchhotan63@gmail.com / Ram@#9798
-            </span>
-          </div>
 
         </div>
       </div>
