@@ -1,56 +1,62 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { ShieldAlert, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
-import { loginAdmin } from '../api'; 
+import { loginAdmin } from '../api'; // सुनिश्चित करें कि आपका api.js का पाथ सही है
 
-export default function AdminLogin() {
-  const navigate = useNavigate();
+const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    if (token) navigate('/admin/dashboard');
-  }, [navigate]);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+    e.preventDefault(); // पेज रिफ्रेश होने से रोकेगा
     setLoading(true);
+    setError('');
 
     try {
       const res = await loginAdmin({ email, password });
-      if (res.data.token) {
+      
+      // टोकन को सुरक्षित करें
+      if (res.data && res.data.token) {
         localStorage.setItem('admin_token', res.data.token);
-        localStorage.setItem('admin_email', email);
-        navigate('/admin/dashboard');
+        navigate('/admin/dashboard'); // सफल होने पर डैशबोर्ड पर भेजें
+      } else {
+        setError('Login failed: No token received');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Check credentials.');
+      console.error(err);
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-sans">
-      <Navbar />
-      <div className="flex-grow flex items-center justify-center p-6">
-        <form onSubmit={handleLogin} className="max-w-md w-full space-y-6 bg-zinc-950 p-8 border border-yellow-500/20 rounded-3xl">
-          <h2 className="text-2xl font-black text-center">ADMIN LOGIN</h2>
-          {error && <div className="text-red-400 text-sm">{error}</div>}
-          <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} className="w-full bg-zinc-900 p-4 rounded-xl" />
-          <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} className="w-full bg-zinc-900 p-4 rounded-xl" />
-          <button type="submit" disabled={loading} className="w-full bg-yellow-400 text-black py-4 rounded-xl font-bold">
-            {loading ? 'Authenticating...' : 'Access Dashboard'}
-          </button>
-        </form>
-      </div>
-      <Footer />
+    <div className="login-container">
+      <h2>Admin Login</h2>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <form onSubmit={handleLogin}>
+        <input 
+          type="email" 
+          placeholder="Email" 
+          value={email} 
+          onChange={(e) => setEmail(e.target.value)} 
+          required 
+        />
+        <input 
+          type="password" 
+          placeholder="Password" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+          required 
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? 'Logging in...' : 'Access Dashboard'}
+        </button>
+      </form>
     </div>
   );
-}
+};
+
+export default AdminLogin;
